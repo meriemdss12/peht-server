@@ -128,12 +128,41 @@ export default {
       this.currentLang = lang;
       this.showSettingsMenu = false;
     },
-    createInteractiveLesson() {
+    async createInteractiveLesson() {
       if (!this.subjectName || !this.lessonName || !this.educationLevel) {
         alert("المرجو ملء جميع الخانات لإنشاء الدرس!");
         return;
       }
-      alert("تم البدء في إنشاء الدرس التفاعلي بنجاح!");
+
+      try {
+        // تم تحديث الرابط هنا ليطابق السيرفر الجديد على Vercel مع إضافة /api/lessons
+        const response = await fetch('https://peht-server-xd1s.vercel.app/api/lessons', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            subjectName: this.subjectName,
+            lessonName: this.lessonName,
+            educationLevel: this.educationLevel
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          alert("تم توليد الدرس عبر الذكاء الاصطناعي بنجاح! 🚀\n\n" + data.lessonContent.substring(0, 150) + "...");
+          // مسح الخانات بعد النجاح
+          this.subjectName = '';
+          this.lessonName = '';
+          this.educationLevel = '';
+        } else {
+          alert("حدث خطأ أثناء توليد الدرس. المرجو المحاولة لاحقاً.");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("تعذر الوصول إلى السيرفر، تأكد من أن الرابط يعمل بشكل صحيح.");
+      }
     }
   }
 }
@@ -447,7 +476,7 @@ export default {
 }
 
 .create-lesson-btn:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  background: linear-gradient(135deg, #1d4ed8 100%, #1e40af 100%);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(37, 99, 235, 0.45);
 }
